@@ -11,12 +11,16 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkActor.h>
 #include <vtkCallbackCommand.h>
+#include <vtkSphereSource.h>
+#include <vtkGlyph3D.h>
+#include <vtkSliderWidget.h>
+#include <vtkSliderRepresentation2D.h>
 
 // own headers
 #include "CParticleSystem.hpp"
 
 
-
+class CSliderCallback;
 
 class CParticleRenderer
 {
@@ -43,6 +47,8 @@ private:
     vtkSmartPointer<vtkPolyData>                m_pointsPolyData;
     vtkSmartPointer<vtkPolyData>                m_polydata;
     vtkSmartPointer<vtkVertexGlyphFilter>       m_vertexFilter;
+    vtkSmartPointer<vtkSphereSource>            m_sphereSource;
+    vtkSmartPointer<vtkGlyph3D>                 m_glyph3D;
     vtkSmartPointer<vtkPolyDataMapper>          m_mapper;
     vtkSmartPointer<vtkActor>                   m_actor;
     vtkSmartPointer<vtkRenderer>                m_renderer;
@@ -50,6 +56,9 @@ private:
     vtkSmartPointer<vtkRenderWindowInteractor>  m_renderWindowInteractor;
     vtkSmartPointer<vtkProgrammableFilter>      m_programmableFilter;
     vtkSmartPointer<vtkCallbackCommand>         m_timerCallback;
+    vtkSmartPointer<CSliderCallback>            m_sliderCallback;
+    vtkSmartPointer<vtkSliderRepresentation2D>  m_sliderRep;
+    vtkSmartPointer<vtkSliderWidget>            m_sliderWidget;
 
     SUpdateParams m_params;
 };

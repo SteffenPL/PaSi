@@ -15,6 +15,8 @@
 #include <vtkCommand.h>
 #include <vtkProgrammableFilter.h>
 #include <vtkCallbackCommand.h>
+#include <vtkTextProperty.h>
+#include <vtkProperty2D.h>
 
 #include <vtkVector.h>
 #include <vtkMath.h>
@@ -24,9 +26,8 @@ CParticleRenderer::CParticleRenderer()
 
 }
 
-
-
-
+namespace
+{
 
 // far to complex construction to get a periodic update
 // of the particles
@@ -72,10 +73,34 @@ void Update( void* args )
         inPts->SetPoint( i , v.GetData() );
 
     }
-
 }
 
- // end of anonymous namespace
+// Slider Callback
+
+
+} // end of anonymous namespace
+
+
+// see: http://www.vtk.org/Wiki/VTK/Examples/Cxx/Widgets/Slider2D
+class CSliderCallback : public vtkCommand
+{
+public:
+    static CSliderCallback *New()
+    {
+        return new CSliderCallback;
+    }
+
+    virtual void Execute(vtkObject *caller, unsigned long, void*)
+    {
+        vtkSliderWidget* sliderWidget = reinterpret_cast<vtkSliderWidget*>(caller);
+        double temperature = static_cast<vtkSliderRepresentation*>(sliderWidget->GetRepresentation())->GetValue();
+
+        this->particleSystem->setTemparature( pow(temperature,5) );
+    }
+    CSliderCallback():particleSystem(0) {}
+
+    CParticleSystem* particleSystem;
+};
 
 void CParticleRenderer::init( CParticleSystem* particleSystem )
 {
@@ -110,10 +135,18 @@ void CParticleRenderer::init( CParticleSystem* particleSystem )
 
     m_programmableFilter->SetExecuteMethod( Update , &m_params);
 
+    // create sphere sources for each points
+    m_sphereSource = vtkSmartPointer<vtkSphereSource>::New();
+    m_glyph3D = vtkSmartPointer<vtkGlyph3D>::New();
+
+    m_sphereSource->SetRadius(1);
+    m_glyph3D->SetSourceConnection(m_sphereSource->GetOutputPort());
+    m_glyph3D->SetInputConnection(m_programmableFilter->GetOutputPort());
+    m_glyph3D->Update();
 
     // Visualization
     m_mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    m_mapper->SetInputConnection(m_programmableFilter->GetOutputPort());
+    m_mapper->SetInputConnection(m_glyph3D->GetOutputPort());
 
     m_actor = vtkSmartPointer<vtkActor>::New();
     m_actor->SetMapper(m_mapper);
@@ -135,8 +168,36 @@ void CParticleRenderer::init( CParticleSystem* particleSystem )
     m_timerCallback->SetCallback( TimerCallbackFunction );
     m_timerCallback->SetClientData( m_programmableFilter );
 
+    // Add slider
+
+    vtkSmartPointer<vtkSliderRepresentation2D> m_sliderRep =
+      vtkSmartPointer<vtkSliderRepresentation2D>::New();
+
+    m_sliderRep->SetMinimumValue(0.0);
+    m_sliderRep->SetMaximumValue(10.0);
+    m_sliderRep->SetValue( pow( particleSystem->getTemperature() , 1./5. ) );
+    m_sliderRep->SetTitleText("Temperature");
+
+
+    m_sliderRep->GetPoint1Coordinate()->SetCoordinateSystemToDisplay();
+    m_sliderRep->GetPoint1Coordinate()->SetValue( 10 , 10);
+    m_sliderRep->GetPoint2Coordinate()->SetCoordinateSystemToDisplay();
+    m_sliderRep->GetPoint2Coordinate()->SetValue( 110, 10);
+
+    m_sliderWidget =
+      vtkSmartPointer<vtkSliderWidget>::New();
+    m_sliderWidget->SetInteractor(m_renderWindowInteractor);
+    m_sliderWidget->SetRepresentation(m_sliderRep);
+    m_sliderWidget->SetAnimationModeToAnimate();
+    m_sliderWidget->EnabledOn();
+
+    m_sliderCallback = vtkSmartPointer<CSliderCallback>::New();
+    m_sliderCallback->particleSystem = particleSystem;
+
+    m_sliderWidget->AddObserver(vtkCommand::InteractionEvent,m_sliderCallback);
+
     m_renderWindowInteractor->Initialize();
-    m_renderWindowInteractor->CreateRepeatingTimer(20);
+    m_renderWindowInteractor->CreateRepeatingTimer(1);
     m_renderWindowInteractor->AddObserver( vtkCommand::TimerEvent , m_timerCallback );
 }
 
