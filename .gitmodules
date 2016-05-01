@@ -1,0 +1,3 @@
+[submodule "cpp_micro/codi"]
+	path = cpp_micro/codi
+	url = https://github.com/SciCompKL/CoDiPack.git

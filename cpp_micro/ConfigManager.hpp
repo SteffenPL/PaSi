@@ -1,0 +1,5 @@
+#ifndef CONFIGMANAGER
+#define CONFIGMANAGER
+
+#endif // CONFIGMANAGER
+
