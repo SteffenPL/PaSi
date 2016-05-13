@@ -10,31 +10,44 @@
 #include <random>
 #include <vector>
 #include <functional>
+#include <list>
 
 // CoDiPack
 #include "codi.hpp"
 
-template< typename Real >
-void Zero_Potential(const Real* x , Real* y , double eps , double sigma )
-{
-    y[0] = 0.;
-}
-
-template< typename Real >
-void VanDerWaals_Potential(const Real* x , Real* y , double eps , double sigma )
-{
-    Real d2 = sigma*sigma / (x[0]*x[0] + x[1]*x[1] + x[2]*x[2]);
-    y[0] = 4 * eps * codi::pow(d2,3) * (codi::pow(d2,3) - 1.);
-}
+#include "ConfigManager.hpp"
 
 
 class CParticleSystem
 {
 public:
+
     // used typedefs
-    using Quader = std::pair<vtkVector3d,vtkVector3d>;
+    using TQuader = std::pair<vtkVector3d,vtkVector3d>;
+    using TNeighbourList = std::vector< std::vector< std::vector< std::list< size_t >>>>;
     using TCodiVec3d = codi::RealForwardVec<3>;
-    using TPotentialFunctional  = std::function<void(const TCodiVec3d* x , TCodiVec3d* y , double , double)>;
+    using TPotentialFunctional  = std::function<void(const TCodiVec3d* x , TCodiVec3d* y , const CParticleSystem&)>;
+
+    enum EBoundaryConditions
+    {
+        FreeBoundary,
+        PeriodicBoundary,
+        ReflectingBoundary,
+        StickyBoundary
+    };
+
+    enum ESolver
+    {
+        ExplicitEuler,
+        Verlet,
+        VelocityVerlet,
+    };
+
+    enum EForceUpdateMethod
+    {
+        Naiv,
+        NeighbourList,
+    };
 
 public:
     CParticleSystem(size_t cParticles , int dim = 3);
@@ -46,29 +59,28 @@ public:
     void generateGriddedPositions(double distance , size_t nx , size_t ny , size_t nz );
     void generateGriddedPositions(size_t nx , size_t ny , size_t nz = 1);
 
+
+    void initNeighbourlist();
+    void updateNeighbourlist();
+    void insertPosition( size_t i );
+
     void updateForcesNaiv();
     void updateForcesNeighbourlist();
 
 
-    void updateForces()
-    {
-        updateForcesNaiv();
-    }
+    void updateForces();
 
     vtkVector3d getPotential1Gradient( vtkVector3d x ) const;
-    vtkVector3d getPotential2Gradient( vtkVector3d r ) const;
+    vtkVector3d getPotential2Gradient(const vtkVector3d& x1 ,const vtkVector3d x2) const;
 
     void eulerStep( double dt );
     void verletStep(double dt);
+    void velocityVerletStep(double dt);
 
 
-    inline void update( double dt )
-    {
-        verletStep(dt);
-        //eulerStep(dt);
-    }
+    void update( double dt );
 
-    inline void update() { update(m_dt); }
+    void update();
 
 
     void updateBoundaryReflecting();
@@ -77,6 +89,8 @@ public:
     void updateBoundaryFree(){}
 
     void updateBoundaryConditions();
+
+    vtkVector3d getCamCenter() const;
 
     // access functions
 
@@ -91,6 +105,9 @@ public:
 
     inline double getTemperature() const;
     inline void   setTemparature(double temperatur);
+
+    inline double getFriction() const;
+    inline void   setFriction( double friction );
 
     inline int    getDimension() const;
     inline void   setDimension( int dim );
@@ -107,16 +124,20 @@ public:
     inline double getRadius() const;
     inline void   setRadius( double radius );
 
-    void parseParameters( int argc , char** argv );
+    void loadConfig(const CConfigManager &config );
 
     // the domain is given by two vectors containing the minimal (x,y,z) coords [minEdge]
     // and the maximal (x,y,z) coords [maxEdge]
-    inline const Quader& getDomain() const;
+    inline const TQuader& getDomain() const;
     inline void          setDomain( vtkVector3d minEdge , vtkVector3d maxEdge );
 
     // set a domain with the given outerDistance
     void setDomain( double outerDistance );
+    vtkVector3d getDomainDiagonal() const;
 
+
+    // set number of subcells
+    void setNumberOfNeighbourCells( int nx , int ny , int nz );
 
     // Potientials are of the form void(const TCodiVec3d* x , TCodiVec3d* y , double eps , double sigma )
 
@@ -127,10 +148,10 @@ public:
     // distance of two particles
     void setPotential2( TPotentialFunctional potential );
 
-    inline void setFreeBoundary();
-    inline void setPeriodicBoundary();
-    inline void setReflectingBoundary();
-    inline void setStickyBoundary();
+    inline void setBoundaryConditions( EBoundaryConditions cond );
+    inline void setSolver( ESolver solver );
+    inline void setForceUpdateMethod( EForceUpdateMethod method );
+
 
 private:
     size_t m_cParticles;
@@ -155,6 +176,9 @@ private:
     // temperatur
     double m_temperatur;
 
+    // friction
+    double m_friction;
+
     // Potential depending on the space position of a particle
     TPotentialFunctional m_potential1;
 
@@ -169,7 +193,6 @@ private:
     // quader
     std::pair<vtkVector3d,vtkVector3d> m_quader;
 
-
     // simulations time step
     double m_dt;
 
@@ -177,14 +200,21 @@ private:
     double m_time;
 
     // boundary conditions
-    enum EBoundaryConditions
-    {
-        FreeBoundary,
-        PeriodicBoundary,
-        ReflectingBoundary,
-        StickyBoundary
-    } m_boundaryConditions;
+    EBoundaryConditions m_boundaryConditions;
 
+    // solver
+    ESolver m_solver;
+
+    // solver
+    EForceUpdateMethod m_forceUpdateMethod;
+
+
+    // neighbour list
+    TNeighbourList m_neighbours;
+    vtkVector3d    m_neighbourQuaderSize;
+
+    // exponential decay
+    float m_expDecayOfTemperatur;
 
 public:
     // Helper functions for random number/vector generation
@@ -192,6 +222,22 @@ public:
     inline double rand_norm( double variance = 1. );
     inline vtkVector3d rand_norm3d( double variance = 1. );
 };
+
+
+
+template< typename Real >
+void Zero_Potential(const Real* x , Real* y , const CParticleSystem& )
+{
+    y[0] = 0.;
+}
+
+template< typename Real >
+void VanDerWaals_Potential(const Real* x , Real* y , const CParticleSystem& p )
+{
+    Real d2 = p.getSigma()*p.getSigma() / (x[0]*x[0] + x[1]*x[1] + x[2]*x[2]);
+    y[0] = 4 * p.getEpsilon() * codi::pow(d2,3) * (codi::pow(d2,3) - 1.);
+}
+
 
 //
 // inline implementations:
@@ -221,8 +267,16 @@ inline double CParticleSystem::getTemperature() const
 
 inline void   CParticleSystem::setTemparature( double temperatur )
 {   m_temperatur = temperatur; }
+
 inline size_t CParticleSystem::getNumberOfParticles() const
 {    return m_cParticles;}
+
+
+inline double CParticleSystem::getFriction() const
+{    return m_friction;}
+
+inline void   CParticleSystem::setFriction( double friction )
+{   m_friction = friction; }
 
 inline void CParticleSystem::setNumberOfParticles( size_t new_size )
 {
@@ -253,7 +307,7 @@ inline void   CParticleSystem::setRadius( double radius )
 {    m_radius = radius;}
 
 
-inline const CParticleSystem::Quader&   CParticleSystem::getDomain() const
+inline const CParticleSystem::TQuader&   CParticleSystem::getDomain() const
 {
     return m_quader;
 }
@@ -262,6 +316,12 @@ inline void CParticleSystem::setDomain( vtkVector3d minEdge , vtkVector3d maxEdg
 {
     m_quader.first = minEdge;
     m_quader.second = maxEdge;
+
+    if( !m_neighbours.empty() )
+    {
+        auto& vec = m_neighbours;
+        setNumberOfNeighbourCells( vec.size() , vec[0].size() , vec[0][0].size() );
+    }
 }
 
 inline double CParticleSystem::getTime() const
@@ -271,25 +331,20 @@ inline void   CParticleSystem::setTime( double time )
 {   m_time = time;}
 
 
-inline void CParticleSystem::setFreeBoundary()
+inline void CParticleSystem::setBoundaryConditions( EBoundaryConditions cond )
 {
-    m_boundaryConditions = EBoundaryConditions::FreeBoundary;
+    m_boundaryConditions = cond;
 }
 
-void CParticleSystem::setPeriodicBoundary()
+inline void CParticleSystem::setSolver( ESolver solver )
 {
-    m_boundaryConditions = EBoundaryConditions::PeriodicBoundary;
+    m_solver = solver;
 }
 
-void CParticleSystem::setReflectingBoundary()
-{
-    m_boundaryConditions = EBoundaryConditions::ReflectingBoundary;
-}
 
-void CParticleSystem::setStickyBoundary()
+inline void CParticleSystem::setForceUpdateMethod( EForceUpdateMethod method )
 {
-    m_boundaryConditions = EBoundaryConditions::StickyBoundary;
+    m_forceUpdateMethod = method;
 }
-
 
 #endif // CPARTICLESYSTEM_HPP

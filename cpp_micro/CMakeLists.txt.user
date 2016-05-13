@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 3.5.1, 2016-04-27T00:31:54. -->
+<!-- Written by QtCreator 3.5.1, 2016-05-06T20:33:02. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -157,7 +157,7 @@
      <value type="int">14</value>
     </valuelist>
     <value type="QString" key="CMakeProjectManager.CMakeRunConfiguation.Title">pasi</value>
-    <value type="QString" key="CMakeProjectManager.CMakeRunConfiguration.Arguments">--stepSize 1e-12 --dimension 3 --numberOfParticles 200  --temperature 0 --stickyBoundary</value>
+    <value type="QString" key="CMakeProjectManager.CMakeRunConfiguration.Arguments">configFile=pasi_config.txt</value>
     <value type="bool" key="CMakeProjectManager.CMakeRunConfiguration.UseTerminal">false</value>
     <value type="QString" key="CMakeProjectManager.CMakeRunConfiguration.UserWorkingDirectory"></value>
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>

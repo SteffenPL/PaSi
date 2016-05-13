@@ -13,13 +13,17 @@ include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/codi/include" )
 
 set( SRC
     main.cpp
-    CParticleSystem.cpp
-    CParticleRenderer.cpp
+    ParticleSystem.cpp
+    ParticleRenderer.cpp
+    ConfigManager.cpp
+    #FunctionPlotter.cpp
 )
 
 set( HEADERS
-    CParticleSystem.hpp
-    CParticleRenderer.hpp
+    ParticleSystem.hpp
+    ParticleRenderer.hpp
+    ConfigManager.hpp
+    #FunctionPlotter.hpp
 )
 
 add_executable(${PROJECT_NAME} ${SRC} ${HEADERS})

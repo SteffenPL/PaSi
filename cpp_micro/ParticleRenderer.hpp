@@ -17,7 +17,7 @@
 #include <vtkSliderRepresentation2D.h>
 
 // own headers
-#include "CParticleSystem.hpp"
+#include "ParticleSystem.hpp"
 
 
 class CSliderCallback;
@@ -29,6 +29,7 @@ public:
     {
         CParticleSystem*        particleSystem;
         vtkProgrammableFilter*  progammableFilter;
+        vtkSliderRepresentation2D* sliderTemperature;
     };
 
 public:
