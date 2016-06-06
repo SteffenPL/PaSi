@@ -7,6 +7,32 @@
 #include <sstream>
 
 
+namespace{
+
+
+template< typename Real >
+void Central_Potential(const Real* x , Real* y , const CParticleSystem& )
+{
+    y[0] = -x[0]*x[0] - x[1]*x[1] - x[2]*x[2];
+}
+
+template< typename Real >
+void Quader_Potential(const Real* x , Real* y , const CParticleSystem& p )
+{
+    y[0] = -x[0]*x[0] - x[1]*x[1] - x[2]*x[2];
+    if( y[0] > -0.1 * p.getSigma() )
+        y[0] = 0.;
+}
+
+template< typename Real >
+void Gravity_Potential(const Real* x , Real* y , const CParticleSystem& )
+{
+    y[0] = -x[1]*1e-15;
+}
+
+
+} // end annonymous namespace
+
 // Bolzmann constant
 namespace constants
 {
@@ -627,6 +653,29 @@ void CParticleSystem::loadConfig(const CConfigManager &config)
 
         if( method == "neighbourList" )
             setForceUpdateMethod( EForceUpdateMethod::NeighbourList );
+    }
+
+
+    if( config.hasKey("potential1") )
+    {
+        std::string potential = config.getValue<std::string>("potential1");
+
+        if( potential == "none" )
+            setPotential1( Zero_Potential<TCodiVec3d> );
+
+        if( potential == "gravity" )
+            setPotential1( Gravity_Potential<TCodiVec3d> );
+    }
+
+    if( config.hasKey("potential2") )
+    {
+        std::string potential = config.getValue<std::string>("potential2");
+
+        if( potential == "quader" )
+            setPotential2( Quader_Potential<TCodiVec3d> );
+
+        if( potential == "vanDerWaals" )
+            setPotential2( VanDerWaals_Potential<TCodiVec3d> );
     }
 
     if( config.hasKey<double>("dt") )

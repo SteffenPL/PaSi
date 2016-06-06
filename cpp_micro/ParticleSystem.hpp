@@ -6,17 +6,101 @@
 #include <vtkVectorOperators.h>
 #include <vtkMath.h>
 
+// eigen includes
+#include <eigen3/Eigen/Sparse>
+
 // std includes
 #include <random>
 #include <vector>
 #include <functional>
 #include <list>
+#include <numeric>
 
 // CoDiPack
 #include "codi.hpp"
 
+// openbabel
+#include <openbabel/mol.h>
+#include <openbabel/obconversion.h>
+
 #include "ConfigManager.hpp"
 
+class CParticleSystem;
+
+
+
+template< typename Real >
+void Zero_Potential(const Real* x , Real* y , const CParticleSystem& )
+{
+    y[0] = 0.;
+}
+
+
+/*template< typename Real , double R >
+void Bond2_Potential(const Real* x , Real* y , const CParticleSystem& p )
+{
+    x[0] = x[3] - x[0];
+    x[1] = x[4] - x[1];
+    x[2] = x[5] - x[2];
+
+    Real d2 = x[0]*x[0] + x[1]*x[1] + x[2]*x[2];
+    y[0] = (d2-R)*(d2-R);
+}*/
+
+
+struct SMolecule
+{
+
+    using TCodiVec3d = codi::RealForwardVec<3>;
+
+    std::vector<size_t>         atoms;
+    Eigen::SparseMatrix<bool>   bonds;
+
+    using TPotentialFunctional = std::function<void( const TCodiVec3d* x , TCodiVec3d* y , const CParticleSystem& )>;
+
+    TPotentialFunctional pot2;  // potential between two atoms
+    TPotentialFunctional pot3;  // potential between three atoms
+    TPotentialFunctional pot4;  // potential between four atoms
+
+
+public:
+
+    void loadFromFile( const std::string& filename )
+    {
+
+        std::ifstream file( filename );
+
+        if( file.is_open() )
+        {
+            OpenBabel::OBConversion conv;
+            conv.SetInStream( &file );
+            if( conv.SetInAndOutFormats("PDB","PDB") )
+            {
+                OpenBabel::OBMol mol;
+                if( conv.Read(&mol) )
+                {
+                    atoms.resize( mol.NumAtoms() );
+
+                    for( auto it = mol.BeginAtoms() ; it != mol.EndAtoms() ; ++it )
+                    {
+                        OpenBabel::OBAtom& atom = *it;
+
+                        auto mass = atom.GetAtomicMass();
+                    }
+                }
+            }
+
+        }
+    }
+
+    void initPotentials()
+    {
+        //pot2 = Bond2_Potential<TCodiVec3d,1.>;
+        //pot3 = Bond3_Potential;
+        //pot4 = Bond4_Potential;
+
+    }
+};
 
 class CParticleSystem
 {
@@ -25,7 +109,7 @@ public:
     // used typedefs
     using TQuader = std::pair<vtkVector3d,vtkVector3d>;
     using TNeighbourList = std::vector< std::vector< std::vector< std::list< size_t >>>>;
-    using TCodiVec3d = codi::RealForwardVec<3>;
+    using TCodiVec3d = SMolecule::TCodiVec3d;
     using TPotentialFunctional  = std::function<void(const TCodiVec3d* x , TCodiVec3d* y , const CParticleSystem&)>;
 
     enum EBoundaryConditions
@@ -48,6 +132,8 @@ public:
         Naiv,
         NeighbourList,
     };
+
+    using TBond = std::pair<size_t,size_t>;
 
 public:
     CParticleSystem(size_t cParticles , int dim = 3);
@@ -96,6 +182,21 @@ public:
 
     inline const vtkVector3d& getPosition( size_t i ) const;
     inline void               setPosition( size_t i , const vtkVector3d& p );
+
+    void addMolecule( std::vector<vtkVector3d> pos , Eigen::SparseMatrix<bool> bonds )
+    {
+        auto firstAtom = m_pos.size();
+
+        m_pos.insert( m_pos.end() , pos.begin() , pos.end() );
+
+        SMolecule molecule;
+        molecule.atoms.resize(pos.size());
+        std::iota( molecule.atoms.begin() , molecule.atoms.end() , firstAtom );
+
+        molecule.bonds = bonds;
+
+        m_molecules.push_back( molecule );
+    }
 
     inline double getEpsilon() const;
     inline void   setEpsilon( double epsilon );
@@ -158,7 +259,8 @@ private:
     int    m_dim;
 
     // Positions
-    std::vector<vtkVector3d> m_pos;
+    std::vector<vtkVector3d>            m_pos;
+    std::vector<SMolecule>    m_molecules;
 
     // Velocities
     std::vector<vtkVector3d> m_vel;
@@ -224,12 +326,6 @@ public:
 };
 
 
-
-template< typename Real >
-void Zero_Potential(const Real* x , Real* y , const CParticleSystem& )
-{
-    y[0] = 0.;
-}
 
 template< typename Real >
 void VanDerWaals_Potential(const Real* x , Real* y , const CParticleSystem& p )

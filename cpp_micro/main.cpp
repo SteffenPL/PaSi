@@ -14,27 +14,6 @@
 
 #include "ConfigManager.hpp"
 
-
-template< typename Real >
-void Central_Potential(const Real* x , Real* y , const CParticleSystem& )
-{
-    y[0] = -x[0]*x[0] - x[1]*x[1] - x[2]*x[2];
-}
-
-template< typename Real >
-void Quader_Potential(const Real* x , Real* y , const CParticleSystem& p )
-{
-    y[0] = -x[0]*x[0] - x[1]*x[1] - x[2]*x[2];
-    if( y[0] > -0.1 * p.getSigma() )
-        y[0] = 0.;
-}
-
-template< typename Real >
-void Gravity_Potential(const Real* x , Real* y , const CParticleSystem& )
-{
-    y[0] = -x[1]*1e-15;
-}
-
 int main(int argc , char ** argv)
 {
     CConfigManager config;
@@ -53,8 +32,8 @@ int main(int argc , char ** argv)
 
     particles.loadConfig( config );
 
-    particles.setPotential1( Gravity_Potential<CParticleSystem::TCodiVec3d> );
-    particles.setPotential2( VanDerWaals_Potential<CParticleSystem::TCodiVec3d> );
+    //particles.setPotential1( Gravity_Potential<CParticleSystem::TCodiVec3d> );
+    //particles.setPotential2( VanDerWaals_Potential<CParticleSystem::TCodiVec3d> );
 
 
     particles.setRadius( 1000. * particles.getSigma() );

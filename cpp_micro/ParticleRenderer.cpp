@@ -54,6 +54,7 @@ void Update( void* args )
 
     particles->update();
 
+    // TODO: share memory!!!
     // assume the the number of points is consant!
     vtkPoints* inPts = filter->GetPolyDataInput()->GetPoints();
     vtkIdType numPts = inPts->GetNumberOfPoints();
