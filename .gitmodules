@@ -10,3 +10,6 @@
 [submodule "cpp_micro/openbabel"]
 	path = cpp_micro/openbabel
 	url = git://github.com/openbabel/openbabel.git
+[submodule "cpp_micro/vtk"]
+	path = cpp_micro/vtk
+	url = https://gitlab.kitware.com/vtk/vtk.git

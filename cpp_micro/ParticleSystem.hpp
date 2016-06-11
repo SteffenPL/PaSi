@@ -19,10 +19,6 @@
 // CoDiPack
 #include "codi.hpp"
 
-// openbabel
-#include <openbabel/mol.h>
-#include <openbabel/obconversion.h>
-
 #include "ConfigManager.hpp"
 
 class CParticleSystem;
@@ -48,6 +44,11 @@ void Bond2_Potential(const Real* x , Real* y , const CParticleSystem& p )
 }*/
 
 
+struct SAtom
+{
+    double mass;
+};
+
 struct SMolecule
 {
 
@@ -68,29 +69,6 @@ public:
     void loadFromFile( const std::string& filename )
     {
 
-        std::ifstream file( filename );
-
-        if( file.is_open() )
-        {
-            OpenBabel::OBConversion conv;
-            conv.SetInStream( &file );
-            if( conv.SetInAndOutFormats("PDB","PDB") )
-            {
-                OpenBabel::OBMol mol;
-                if( conv.Read(&mol) )
-                {
-                    atoms.resize( mol.NumAtoms() );
-
-                    for( auto it = mol.BeginAtoms() ; it != mol.EndAtoms() ; ++it )
-                    {
-                        OpenBabel::OBAtom& atom = *it;
-
-                        auto mass = atom.GetAtomicMass();
-                    }
-                }
-            }
-
-        }
     }
 
     void initPotentials()
