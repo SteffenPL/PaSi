@@ -11,15 +11,18 @@ add_definitions(-Wall)
 include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/codi/include" )
 
 # boost/functional
-include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/functional/include" )
+include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/boost/functional/include" )
 
 # Eigen
-include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/" )
+include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/eigen" )
 
 # VTK
 find_package(VTK 7 REQUIRED)
 include(${VTK_USE_FILE})
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules)
 
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 
 add_subdirectory( src )
+
+file(COPY data DESTINATION ${CMAKE_BINARY_DIR} )

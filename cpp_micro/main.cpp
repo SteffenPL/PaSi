@@ -419,17 +419,17 @@ public:
 
         // Monopotential
         for( int i = 0; i < cAtoms ; ++i )
-            m_forces[i] = Force1( i );
+            0;//m_forces[i] = Force1( i );
 
         // Bipotential
         for( int i = 0 ; i < cAtoms ; ++i )
         {
             for( int j = 0 ; j < i ; ++j )
             {
-                TVec3 F = Force2( i , j );
+                0;//TVec3 F = Force2( i , j );
 
-                m_forces[i] += F;
-                m_forces[j] -= F;
+                0;//m_forces[i] += F;
+                0;//m_forces[j] -= F;
             }
         }
 
@@ -447,9 +447,9 @@ public:
             auto i = bond.GetBeginAtomId();
             auto j = bond.GetEndAtomId();
 
-            TVec3 F = Force2B( i , j );
-            m_forces[i] += F;
-            m_forces[j] -= F;
+            0;//TVec3 F = Force2B( i , j );
+            0;//m_forces[i] += F;
+            0;//m_forces[j] -= F;
         }
     }
 

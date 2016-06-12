@@ -5,14 +5,14 @@ set( SRC
     main.cpp
     ConfigManager.cpp
     ForceField.cpp
-    State.cpp
+    MoleculeState.cpp
     MoleculeViewer.cpp
 )
 
 set( HEADERS
     ConfigManager.hpp
     ForceField.hpp
-    State.hpp
+    MoleculeState.hpp
     MoleculeViewer.hpp
 )
 
