@@ -51,7 +51,7 @@ public:
 
     void update()
     {
-        double dt = 0.001;
+        double dt = 0.01;
         double sqrtdt = sqrt( dt/2. );
 
         for( size_t i = 0 ; i < numberOfAtoms() ; ++i )

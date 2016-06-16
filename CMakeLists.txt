@@ -17,7 +17,7 @@ include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/boost/functional/in
 include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/eigen" )
 
 # VTK
-find_package(VTK 7 REQUIRED)
+find_package(VTK 7 REQUIRED )
 include(${VTK_USE_FILE})
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules)
 
@@ -25,4 +25,11 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 
 add_subdirectory( src )
 
-file(COPY data DESTINATION ${CMAKE_BINARY_DIR} )
+
+
+
+#add_custom_command(TARGET DataFilesTarget PRE_BUILD
+#                   COMMAND ${CMAKE_COMMAND} -E copy_directory
+#                       ${CMAKE_SOURCE_DIR}/data $<TARGET_FILE_DIR:DataFilesTarget>)
+
+#file(INSTALL data DESTINATION ${CMAKE_BINARY_DIR} )

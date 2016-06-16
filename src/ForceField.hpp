@@ -4,6 +4,7 @@
 // std includes
 #include <unordered_map>
 #include <map>
+#include <iostream>
 
 // eigen includes
 #include <Eigen/Dense>
@@ -100,7 +101,9 @@ T findValue( int index , std::unordered_map<int,T>& mp )
     if( it != mp.end() )
         return it->second;
 
-    //std::cout << "Missing parameter for " << index << "\n" << std::flush;
+    std::cout << "Missing parameter for " << index << "\n" << std::flush;
+
+    mp[index] = 0;
 
     return 0;
 }
@@ -127,7 +130,9 @@ T findValue( Eigen::Vector2i index , std::unordered_map<Eigen::Matrix<int,2,1>,T
 
     // report the missing parameter:
 
-    //std::cout << "Missing parameter for " << index << "\n" << std::flush;
+    std::cout << "Missing parameter for " << index.transpose() << "\n" << std::flush;
+
+    mp[index] = 0;
     return 0;
 }
 
@@ -152,8 +157,9 @@ T findValue( Eigen::Vector3i index , std::unordered_map<Eigen::Matrix<int,2,1>,T
     }
     // report the missing parameter:
 
-    //std::cout << "Missing parameter for " << index << "\n" << std::flush;
+    std::cout << "Missing parameter for " << index.transpose() << "\n" << std::flush;
 
+    mp[index] = 0;
     // T is expected to be numeric
     return 0;
 }
@@ -193,8 +199,9 @@ T findValue( Eigen::Vector4i index , std::unordered_map<Eigen::Matrix<int,2,1>,T
 
     // report the missing parameter:
 
-    //std::cout << "Missing parameter for " << index << "\n" << std::flush;
+    std::cout << "Missing parameter for " << index.transpose() << "\n" << std::flush;
 
+    mp[index] = 0;
     return 0;
 }
 

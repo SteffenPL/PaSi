@@ -1,0 +1,2 @@
+molecule   = 1skl.pdb
+forceField = toppar/par_all22_prot.prm

@@ -1,4 +1,6 @@
-#include <iostream>
+#include <QApplication>
+#include <QCommandLineParser>
+#include <QCommandLineOption>
 
 
 // includes
@@ -7,11 +9,16 @@
 #include "MoleculeViewer.hpp"
 #include "MoleculeState.hpp"
 
+// user interface
+#include "MoleculeEditor.hpp"
+
+
 using namespace std;
 
 
-int main( int argc , char** argv )
+int main(int argc, char *argv[])
 {
+
 
     CConfigManager config;
     config.parse(argc , argv );
@@ -35,10 +42,13 @@ int main( int argc , char** argv )
         cout << "No force field field given...\n";
 
 
-    CMoleculeViewer viewer;
-
-    viewer.init( &state );
-    viewer.start();
+    QApplication app(argc, argv);
 
 
+    CMoleculeEditor mainWin;
+
+    mainWin.init( &state );
+
+    mainWin.show();
+    return app.exec();
 }

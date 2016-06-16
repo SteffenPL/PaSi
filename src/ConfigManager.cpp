@@ -1,5 +1,7 @@
 #include "ConfigManager.hpp"
 
+#include <cctype>
+
 std::ostream &operator<<(std::ostream &os, const CConfigManager &config)
 {
     for( const auto& item : config )
@@ -44,7 +46,9 @@ void CConfigManager::parse(std::stringstream &ss, char delimiter)
     std::getline(ss, key , delimiter );
 
 
-    std::remove_if( key.begin() , key.end() , [](char c){return std::isspace(c);} );
+    std::stringstream tmp;
+    tmp << key;
+    tmp >> key;
 
     if( !key.empty() )
     {
@@ -52,8 +56,9 @@ void CConfigManager::parse(std::stringstream &ss, char delimiter)
         std::string value;
         std::getline( ss, value , '\n' );
 
-        // insert the value into the map
-        std::remove_if( value.begin() , value.end() , [](char c){return std::isspace(c);} );
+        std::stringstream tmp2;
+        tmp2 << value;
+        tmp2 >> value;
         (*this)[key] = value;
     }
 

@@ -3,11 +3,13 @@
 
 // vtk includes
 #include <vtkNew.h>
+#include <vtkSmartPointer.h>
 
 class CMoleculeState;
 class vtkProgrammableFilter;
 class vtkCallbackCommand;
 class vtkMoleculeMapper;
+class vtkOpenGLMoleculeMapper;
 class vtkMolecule;
 class vtkActor;
 class vtkRenderer;
@@ -26,6 +28,21 @@ public:
     void init( CMoleculeState* state );
     void start();
 
+public:
+
+    enum ERenderStyle
+    {
+        EBallAndSticks,
+        EVDW,
+        ESticks,
+        EFast
+    } renderStyle;
+
+protected:
+
+    virtual void initRenderWindow();
+    vtkSmartPointer<vtkRenderWindow>    m_renWin;
+
 private:
 
     static void Update( void* args );
@@ -43,10 +60,9 @@ private:
     vtkNew<vtkProgrammableFilter>       m_programmableFilter;
 
     vtkNew<vtkCallbackCommand>          m_callback;
-    vtkNew<vtkMoleculeMapper>           m_moleculeMapper;
+    vtkNew<vtkMoleculeMapper>     m_moleculeMapper;
     vtkNew<vtkActor>                    m_moleculeActor;
     vtkNew<vtkRenderer>                 m_ren;
-    vtkNew<vtkRenderWindow>             m_renWin;
     vtkNew<vtkRenderWindowInteractor>   m_renInteractor;
 
 };
